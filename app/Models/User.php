@@ -46,4 +46,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Credit the user's balance
+     * @param mixed $amount
+     * @return void
+     */
+    public function credit($amount)
+    {
+        $this->wallet->balance += $amount;
+        $this->wallet->save();
+
+        return;
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
 }

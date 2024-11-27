@@ -22,6 +22,7 @@ Route::prefix('auth')->group(function () {
 
 Route::get('assets', [AssetController::class, 'listAssets']);
 Route::get('assets/featured', [AssetController::class, 'featuredAssets']);
+Route::get('assets/{symbol}', [AssetController::class, 'getAssetPriceData']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -36,5 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('depositWithdraw', [PaymentController::class, 'depositWithdraw']);
     Route::post('withdraw', [PaymentController::class, 'withdraw']);
     Route::get('transactions', [PaymentController::class, 'transactionHistory']);
+    Route::get('wallet/balance', [PaymentController::class, 'walletBalance']);
     Route::get('paystack/callback', [PaymentController::class, 'paystackCallback'])->name('paystack.callback');
 });

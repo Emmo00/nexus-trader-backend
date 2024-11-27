@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
+    public function walletBalance()
+    {
+        return response()->json([
+            'message' => 'wallet balance',
+            'data' => request()->user()->wallet,
+        ]);
+    }
     /**
      * Deposit or Withdraw funds.
      *
