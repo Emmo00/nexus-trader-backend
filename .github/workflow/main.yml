@@ -1,0 +1,85 @@
+name: Deploy Tetmart Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: tetmart_database
+          MYSQL_DATABASE: tetmart_database
+          MYSQL_USER: tetmart_database
+          MYSQL_PASSWORD: tetmart_database
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+      
+      - name: Install dependencies
+        run: |
+          curl -sS https://getcomposer.org/installer | php
+          php composer.phar install
+          sudo mv composer.phar /usr/local/bin/composer
+      
+      - name: Build application
+        run: |
+          composer install
+          composer dump-autoload
+          echo "${{ vars.TEST_ENV }}" > .env
+          php artisan key:generate
+          chmod -R 777 ./storage/app
+          chmod -R 777 ./storage/framework
+          chmod -R 777 ./storage/logs
+          php artisan migrate
+          php artisan db:seed
+
+          echo "Clear expired password reset tokens"
+          php artisan auth:clear-resets
+
+      - name: Test application
+        run: |
+          php artisan test
+
+      - name: Deploy application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_SECRET_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          passphrase: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ${{ secrets.REMOTE_PATH }}
+            echo "Turn on maintenance mode"
+            php artisan down || true
+
+            echo "Git Pull"
+            eval "$(ssh-agent -s)"
+            ssh-add ~/github_keys/github_ed25519
+            git stash ; git pull origin main
+
+            echo "Composer Install" # add --no-dev later
+            composer install --no-interaction --prefer-dist --optimize-autoloader 
+
+            echo "Run database migrations"
+            php artisan migrate -f
+
+            echo "Turn off maintenance mode"
+            php artisan up
+
+            echo "Clear expired password reset tokens"
+            php artisan auth:clear-resets
