@@ -24,12 +24,13 @@ class UpdateAssets extends Command
     {
         $loop = Factory::create();
         $connector = new Connector($loop);
+        $assets = [];
 
         $connector('wss://ws.derivws.com/websockets/v3?app_id=65980')
-            ->then(function (WebSocket $conn) use ($loop) {
+            ->then(function (WebSocket $conn) use ($loop, &$assets) {
                 $conn->send(json_encode(["active_symbols" => "full"]));
 
-                $conn->on('message', function ($msg) use ($conn, $loop) {
+                $conn->on('message', function ($msg) use ($conn, $loop, &$assets) {
                     $assets = json_decode($msg, true);
 
                     if (isset($assets['active_symbols'])) {
@@ -56,5 +57,6 @@ class UpdateAssets extends Command
             });
 
         $loop->run();
+        return $assets;
     }
 }

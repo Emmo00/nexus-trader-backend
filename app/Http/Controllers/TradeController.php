@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\ResolveBinaryTrade;
 use App\Models\Trade;
 use App\Models\User;
 use App\Models\Wallet;
@@ -96,6 +97,8 @@ class TradeController extends Controller
      */
     public function getTradeStatus($id)
     {
+        (new ResolveBinaryTrade())->handle();
+
         $trade = Trade::where('user_id', Auth::id())->find($id);
 
         if (!$trade) {

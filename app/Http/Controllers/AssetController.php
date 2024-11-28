@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\UpdateAssets;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use App\Models\Asset;
@@ -15,7 +16,7 @@ class AssetController extends Controller
      */
     public function listAssets()
     {
-        $assets = Cache::get('assets', []);
+        $assets = Cache::get('assets', (new UpdateAssets())->handle());
 
         return response()->json([
             'success' => true,
