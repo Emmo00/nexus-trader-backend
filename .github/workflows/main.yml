@@ -1,4 +1,4 @@
-name: Deploy Tetmart Backend
+name: Deploy Nexus Backend
 
 on:
   push:
@@ -13,10 +13,10 @@ jobs:
       mariadb:
         image: mariadb:latest
         env:
-          MYSQL_ROOT_PASSWORD: tetmart_database
-          MYSQL_DATABASE: tetmart_database
-          MYSQL_USER: tetmart_database
-          MYSQL_PASSWORD: tetmart_database
+          MYSQL_ROOT_PASSWORD: nexus_database
+          MYSQL_DATABASE: nexus_database
+          MYSQL_USER: nexus_database
+          MYSQL_PASSWORD: nexus_database
         ports:
           - 3306:3306
 
@@ -60,7 +60,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_SECRET_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          # port: ${{ secrets.SSH_PORT }}
           passphrase: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ${{ secrets.REMOTE_PATH }}
@@ -68,9 +68,7 @@ jobs:
             php artisan down || true
 
             echo "Git Pull"
-            eval "$(ssh-agent -s)"
-            ssh-add ~/github_keys/github_ed25519
-            git stash ; git pull origin main
+            git stash ; git pull origin master
 
             echo "Composer Install" # add --no-dev later
             composer install --no-interaction --prefer-dist --optimize-autoloader 
