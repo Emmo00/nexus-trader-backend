@@ -3,7 +3,7 @@ name: Deploy Nexus Backend
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
